@@ -1,0 +1,207 @@
+/*db.getCollection('contatos').find({})
+
+db.contatos.update({"nome": "Cristiano", "idade": 33}, 
+{"nome": "Cristiano Castro", "idade": 33});
+*/
+
+use('talksHandsOn');
+
+db.estudantes.drop();
+
+db.createCollection("estudantes", {
+    validator: {
+       $jsonSchema: {
+          bsonType: "object",
+          required: [ "nome", "ano", "disciplina", "nota" ],
+          properties: {
+            nome: {
+                bsonType: "string",
+                description: "Deve ser uma string e é obrigatória!"
+             },
+             ano: {
+                bsonType: "int",
+                minimum: 2017,
+                maximum: 3017,
+                description: "Deve ser um inteiro entre [ 2017, 3017 ] e é obrigatório!"
+             },
+             disciplina: {
+                enum: [ "Mat", "Port", "Hist", "Geo", null ],
+                description: "Deve ser apenas um ENUM e é obrigatório"
+             },
+             nota: {
+                bsonType: [ "double" ],
+                description: "Precisa ser double se o campo existir"
+             },
+             endereco: {
+                bsonType: "object",
+                required: [ "cidade" ],
+                properties: {
+                   rua: {
+                      bsonType: "string",
+                      description: "Deve ser uma string se o campo existir."
+                   },
+                   cidade: {
+                      bsonType: "string",
+                      description: "Deve ser uma string e é obrigatória!"
+                   }
+                }
+             }
+          }
+       }
+    }
+ });
+
+db.getCollectionInfos();
+
+db.estudantes.insertOne({
+    "nome" : "Zé",
+    "ano" : 2020,
+    "disciplina" : "Mat",
+    "nota" : 7.5,
+    "endereco" : {
+        "cidade" : "Restinga Seca"
+    }
+});
+
+db.estudantes.insertOne({
+    "nome" : "Fulano",
+    "ano" : 2021,
+    "disciplina" : "Mat",
+    "nota" : 7.5,
+    "endereco" : {
+        "cidade" : "Restinga Seca"
+    }
+});
+
+db.estudantes.insertOne({
+    "nome" : "Beltrano",
+    "ano" : 2021,
+    "disciplina" : "Geo",
+    "nota" : 5.5,
+    "endereco" : {
+        "cidade" : "Poa"
+    }
+});
+
+db.estudantes.insertOne({
+    "nome" : "Delgrano",
+    "ano" : 2022,
+    "disciplina" : null,
+    "nota" : 5.5,
+    "endereco" : {
+        "cidade" : "Poa"
+    }
+});
+
+
+db.estudantes.insertOne({
+    "nome" : "Crewzembeck",
+    "ano" : 2022,
+    "disciplina" : null,
+    "nota" : 5.5,
+    "endereco" : {
+        "rua" : "as Flores",
+        "cidade" : "Poa"
+    }
+});
+
+db.estudantes.find();
+
+
+db.estudantes.find({disciplina: null});
+
+
+db.createCollection( "contatos",
+   { validator: { $or:
+      [
+         { telefone: { $type: "string" } },
+         { email: { $regex: /@mongodb\.com$/ } },
+         { status: { $in: [ "Unknown", "Incomplete" ] } }
+      ]
+   }
+});
+
+db.contatos.insertMany([
+    { "_id": 1, "nome": "Ana", "telefone": "51 999 123 456", "cidade": "Pega Fogo", "status": "Complete" },
+    { "_id": 2, "nome": "Ivan", "cidade": "Itu" }
+]);
+
+db.runCommand( {
+   collMod: "contatos",
+   validator: { $jsonSchema: {
+      bsonType: "object",
+      required: [ "telefone", "nome" ],
+      properties: {
+         telefone: {
+            bsonType: "string",
+            description: "Deve ser uma string"
+         },
+         nome: {
+            bsonType: "string",
+            description: "Deve ser uma string"
+         }
+      }
+   } },
+   validationLevel: "moderate"
+} );
+// validationLevel: "moderate" Ao inserir/Editar vários documentos, ele vai aceitar apenas aqueles que atenderem aos critérios, rejeitando apenas aos que não atenderem.
+// validationLevel: strict ignora todos se algum não atender os critérios
+
+db.contatos.insertMany([
+    { "_id": 3, "nome": "Ana Maria", "telefone": "51 999 123 456", "cidade": "Pega Fogo", "status": "Unknow" },
+    { "_id": 2, "nome": "Ivan", "cidade": "Itu" }
+]);
+
+db.runCommand( {
+   collMod: "contatos",
+   validator: { $jsonSchema: {
+      bsonType: "object",
+      required: [ "telefone", "nome" ],
+      properties: {
+         telefone: {
+            bsonType: "string",
+            description: "Deve ser uma string"
+         },
+         nome: {
+            bsonType: "string",
+            description: "Deve ser uma string"
+         }
+      }
+   } },
+   validationLevel: "off"
+} );
+// validationLevel: "off" Desliga qualquer validação
+
+db.contatos.insertOne({ "_id": 2, "nome": "Ivan", "cidade": "Itu" });
+
+db.contatos.find();
+
+db.contatos2.drop();
+
+db.createCollection( "contatos2", {
+   validator: { $jsonSchema: {
+      bsonType: "object",
+      required: [ "telefone" ],
+      properties: {
+         telefone: {
+            bsonType: "string",
+            description: "Deve ser uma string"
+         },
+         email: {
+            bsonType : "string",
+            pattern : "@mongodb\.com$",
+            description: "Deve ser uma string e combinar com o padrão"
+         },
+         status: {
+            enum: [ "Unknown", "Incomplete" ],
+            description: "deve ser um unico valor do enum"
+         }
+      }
+   } },
+   validationAction: "warn"
+} );
+// validationAction: error rejeita qualquer restrição violada
+// validationAction: warn aceita e apenas avisa no log
+
+
+db.contatos2.insertOne({ "_id": 2, "nome": "Ivan", "cidade": "Itu" });
