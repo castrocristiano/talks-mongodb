@@ -205,3 +205,6 @@ db.createCollection( "contatos2", {
 
 
 db.contatos2.insertOne({ "_id": 2, "nome": "Ivan", "cidade": "Itu" });
+
+
+db.contatos2.find();

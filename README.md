@@ -86,8 +86,6 @@ Operação para exibir informações sobre restrições e validações no schema
 
 # Ignorar validação de documento
 
-Os usuários podem ignorar a validação do documento usando a opção **bypassDocumentValidation**.
-
 Os seguintes comandos podem ignorar a validação por operação usando a nova opção **bypassDocumentValidation**:
 * `applyOps`
 * `findAndModify` e `db.collection.findAndModify()` 
